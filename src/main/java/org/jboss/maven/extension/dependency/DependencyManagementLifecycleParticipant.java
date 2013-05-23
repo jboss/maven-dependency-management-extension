@@ -36,7 +36,7 @@ import org.jboss.maven.extension.dependency.modelmodifier.ModelModifier;
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.DepVersionOverrider;
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.PluginVersionOverrider;
 import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
-import org.jboss.maven.extension.dependency.util.log.Logging;
+import org.jboss.maven.extension.dependency.util.log.Log;
 import org.sonatype.aether.impl.ArtifactResolver;
 
 /**
@@ -44,11 +44,12 @@ import org.sonatype.aether.impl.ArtifactResolver;
  * instances have been created". This should allow access to the model(s) after they are built, but before they are
  * used.
  */
-@Component( role = AbstractMavenLifecycleParticipant.class, hint = "modifymodel" )
-public class ModifyModelLifecycleParticipant
+@Component( role = AbstractMavenLifecycleParticipant.class, hint = "dependencymanagement" )
+public class DependencyManagementLifecycleParticipant
     extends AbstractMavenLifecycleParticipant
 {
-    private static final Logger logger = Logging.getLogger();
+    @Requirement
+    private Logger logger;
 
     private final List<ModelModifier> buildModifierList = new ArrayList<ModelModifier>();
 
@@ -61,9 +62,10 @@ public class ModifyModelLifecycleParticipant
     /**
      * Load the build modifiers at instantiation time
      */
-    public ModifyModelLifecycleParticipant()
+    public DependencyManagementLifecycleParticipant()
     {
-        logger.debug( "New ModifyModelLifecycleParticipant contructed" );
+        // Logger is not available yet
+        System.out.println( "[INFO] Init Maven Dependency Management Extension" );
 
         buildModifierList.add( new DepVersionOverrider() );
         buildModifierList.add( new PluginVersionOverrider() );
@@ -74,18 +76,18 @@ public class ModifyModelLifecycleParticipant
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
-
+        Log.setLog( logger );
         try
         {
             EffectiveModelBuilder.init( session, resolver, modelBuilder );
         }
         catch ( ComponentLookupException e )
         {
-            logger.fatalError( "EffectiveModelBuilder init could not look up plexus component: " + e );
+            logger.error( "EffectiveModelBuilder init could not look up plexus component: " + e );
         }
         catch ( PlexusContainerException e )
         {
-            logger.fatalError( "EffectiveModelBuilder init produced a plexus container error: " + e );
+            logger.error( "EffectiveModelBuilder init produced a plexus container error: " + e );
         }
 
         // Apply model modifiers to the projects' models
@@ -117,7 +119,6 @@ public class ModifyModelLifecycleParticipant
                 catch ( IOException e )
                 {
                     logger.error( "Could not write the effective POM of model '" + currModel.getId() + "' due to " + e );
-                    Logging.logAllCauses( logger, e.getCause() );
                 }
             }
         }

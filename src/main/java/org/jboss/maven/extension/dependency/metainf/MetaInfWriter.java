@@ -24,15 +24,13 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Resource;
 import org.codehaus.plexus.logging.Logger;
 import org.jboss.maven.extension.dependency.metainf.generator.MetaInfGenerator;
-import org.jboss.maven.extension.dependency.util.log.Logging;
+import org.jboss.maven.extension.dependency.util.log.Log;
 
 /**
  * This class writes out metainf resources to be included with the jar at META-INF/maven/group/project/
  */
 public class MetaInfWriter
 {
-    private static Logger logger = Logging.getLogger();
-
     /**
      * A unique name to use for a prefix in temp output
      */
@@ -91,7 +89,7 @@ public class MetaInfWriter
         model.getBuild().addResource( newResource );
 
         // Done
-        logger.debug( desc + " written and included for '" + projectGroupID + ":" + projectArtifactID + "'" );
+        Log.getLog().debug( desc + " written and included for '" + projectGroupID + ":" + projectArtifactID + "'" );
     }
 
     /**

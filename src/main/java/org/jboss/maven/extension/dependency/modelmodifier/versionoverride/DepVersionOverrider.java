@@ -26,6 +26,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.building.ModelBuildingException;
 import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
 import org.jboss.maven.extension.dependency.util.VersionPropertyReader;
+import org.jboss.maven.extension.dependency.util.log.Log;
 import org.sonatype.aether.resolution.ArtifactDescriptorException;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 
@@ -82,7 +83,7 @@ public class DepVersionOverrider
         {
             dependencyManagement = new DependencyManagement();
             model.setDependencyManagement( dependencyManagement );
-            getLog().debug( "Created new Dependency Management for model" );
+            Log.getLog().debug( "Created new Dependency Management for model" );
         }
 
         // Apply overrides to Dependency Management
@@ -103,13 +104,13 @@ public class DepVersionOverrider
                 newDependency.setVersion( artifactVersion );
 
                 dependencyManagement.getDependencies().add( newDependency );
-                getLog().debug( "New dependency added to Dependency Management: " + groupIdArtifactId + "="
+                Log.getLog().debug( "New dependency added to Dependency Management: " + groupIdArtifactId + "="
                                     + artifactVersion );
             }
         }
         else
         {
-            getLog().debug( "Non-matching dependencies ignored." );
+            Log.getLog().debug( "Non-matching dependencies ignored." );
         }
 
         // Apply overrides to project dependencies
@@ -180,7 +181,7 @@ public class DepVersionOverrider
             {
                 String artifactVersion = overrides.get( groupIdArtifactId );
                 dependency.setVersion( artifactVersion );
-                getLog().debug( "Altered dependency: " + groupIdArtifactId + "=" + artifactVersion );
+                Log.getLog().debug( "Altered dependency: " + groupIdArtifactId + "=" + artifactVersion );
                 nonMatchingVersionOverrides.remove( groupIdArtifactId );
             }
         }
@@ -209,15 +210,15 @@ public class DepVersionOverrider
             }
             catch ( ArtifactResolutionException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
             catch ( ArtifactDescriptorException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
             catch ( ModelBuildingException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
         }
 

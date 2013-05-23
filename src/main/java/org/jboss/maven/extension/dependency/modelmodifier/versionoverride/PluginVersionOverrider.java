@@ -26,6 +26,7 @@ import org.apache.maven.model.PluginManagement;
 import org.apache.maven.model.building.ModelBuildingException;
 import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
 import org.jboss.maven.extension.dependency.util.VersionPropertyReader;
+import org.jboss.maven.extension.dependency.util.log.Log;
 import org.sonatype.aether.resolution.ArtifactDescriptorException;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 
@@ -73,7 +74,7 @@ public class PluginVersionOverrider
         {
             pluginManagement = new PluginManagement();
             model.getBuild().setPluginManagement( pluginManagement );
-            getLog().debug( "Created new Plugin Management for model" );
+            Log.getLog().debug( "Created new Plugin Management for model" );
         }
 
         // Override plugin management versions
@@ -130,7 +131,7 @@ public class PluginVersionOverrider
             {
                 String overrideVersion = pluginVersionOverrides.get( groupIdArtifactId );
                 plugin.setVersion( overrideVersion );
-                getLog().debug( "Altered plugin: " + groupIdArtifactId + "=" + overrideVersion );
+                Log.getLog().debug( "Altered plugin: " + groupIdArtifactId + "=" + overrideVersion );
             }
         }
     }
@@ -156,15 +157,15 @@ public class PluginVersionOverrider
             }
             catch ( ArtifactResolutionException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
             catch ( ArtifactDescriptorException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
             catch ( ModelBuildingException e )
             {
-                getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e );
             }
         }
 

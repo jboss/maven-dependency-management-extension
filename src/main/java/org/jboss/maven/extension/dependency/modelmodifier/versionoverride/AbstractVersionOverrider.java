@@ -19,11 +19,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.maven.model.Model;
-import org.codehaus.plexus.logging.Logger;
 import org.jboss.maven.extension.dependency.metainf.MetaInfWriter;
 import org.jboss.maven.extension.dependency.metainf.generator.OverridePropertiesGenerator;
 import org.jboss.maven.extension.dependency.modelmodifier.ModelModifier;
-import org.jboss.maven.extension.dependency.util.log.Logging;
+import org.jboss.maven.extension.dependency.util.log.Log;
 
 /**
  * Abstract class that provides fields and methods common to classes that need to override versions by groupID and
@@ -32,15 +31,6 @@ import org.jboss.maven.extension.dependency.util.log.Logging;
 public abstract class AbstractVersionOverrider
     implements ModelModifier
 {
-    /**
-     * Logging abstraction
-     */
-    private static final Logger logger = Logging.getLogger();
-
-    protected static Logger getLog()
-    {
-        return logger;
-    }
 
     /**
      * The character used to separate groupId:arifactId:version
@@ -62,8 +52,8 @@ public abstract class AbstractVersionOverrider
         }
         catch ( IOException e )
         {
-            logger.error( "Could not write " + overrideName + " override map to file due to " + e );
-            Logging.logAllCauses( logger, e.getCause() );
+            Log.getLog().error( "Could not write " + overrideName + " override map to file due to " + e );
+            Log.logAllCauses( e.getCause() );
         }
     }
 

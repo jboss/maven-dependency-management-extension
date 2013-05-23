@@ -35,7 +35,7 @@ import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.Logger;
-import org.jboss.maven.extension.dependency.util.log.Logging;
+import org.jboss.maven.extension.dependency.util.log.Log;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
@@ -57,8 +57,6 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
  */
 public class EffectiveModelBuilder
 {
-
-    private static final Logger logger = Logging.getLogger();
 
     private static EffectiveModelBuilder instance;
 
@@ -165,19 +163,19 @@ public class EffectiveModelBuilder
     {
         Map<String, String> versionOverrides = new HashMap<String, String>();
 
-        logger.debug( "resolving gav: " + gav );
+        Log.getLog().debug( "resolving gav: " + gav );
         Artifact artifact = resolvePom( gav );
 
         ModelResolver modelResolver = this.newModelResolver();
 
         Model effectiveModel = buildModel( artifact.getFile(), modelResolver );
-        logger.debug( "Built model for project: " + effectiveModel.getName() );
+        Log.getLog().debug( "Built model for project: " + effectiveModel.getName() );
 
         for ( org.apache.maven.model.Dependency dep : effectiveModel.getDependencyManagement().getDependencies() )
         {
             String groupIdArtifactId = dep.getGroupId() + ":" + dep.getArtifactId();
             versionOverrides.put( groupIdArtifactId, dep.getVersion() );
-            logger.debug( "Added version override for: " + groupIdArtifactId + ":" + dep.getVersion() );
+            Log.getLog().debug( "Added version override for: " + groupIdArtifactId + ":" + dep.getVersion() );
         }
 
         return versionOverrides;
@@ -204,7 +202,7 @@ public class EffectiveModelBuilder
         throws ArtifactResolutionException, ArtifactDescriptorException, ModelBuildingException
 
     {
-        logger.debug( "Resolving remote POM: " + gav );
+        Log.getLog().debug( "Resolving remote POM: " + gav );
 
         Artifact artifact = resolvePom( gav );
 
@@ -230,7 +228,7 @@ public class EffectiveModelBuilder
         throws ArtifactResolutionException, ArtifactDescriptorException
 
     {
-        logger.debug( "Resolving remote POM: " + gav );
+        Log.getLog().debug( "Resolving remote POM: " + gav );
 
         RepositorySystemSession repoSession = session.getRepositorySession();
 
@@ -243,10 +241,10 @@ public class EffectiveModelBuilder
         ArtifactDescriptorResult descResult = repositorySystem.readArtifactDescriptor( repoSession, descRequest );
         for ( Dependency dep : descResult.getManagedDependencies() )
         {
-            logger.info( "Remote managed dep: " + dep );
+            Log.getLog().info( "Remote managed dep: " + dep );
         }
 
-        logger.debug( artifact + " resolved to  " + artifact.getFile() );
+        Log.getLog().debug( artifact + " resolved to  " + artifact.getFile() );
 
         return descResult;
     }
