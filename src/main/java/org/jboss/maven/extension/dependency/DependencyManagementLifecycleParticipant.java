@@ -16,8 +16,10 @@
 package org.jboss.maven.extension.dependency;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
@@ -30,6 +32,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.IOUtil;
 import org.jboss.maven.extension.dependency.metainf.MetaInfWriter;
 import org.jboss.maven.extension.dependency.metainf.generator.EffectivePomGenerator;
 import org.jboss.maven.extension.dependency.modelmodifier.ModelModifier;
@@ -65,11 +68,41 @@ public class DependencyManagementLifecycleParticipant
     public DependencyManagementLifecycleParticipant()
     {
         // Logger is not available yet
-        System.out.println( "[INFO] Init Maven Dependency Management Extension" );
+        System.out.println( "[INFO] Init Maven Dependency Management Extension " + loadProjectVersion() );
 
         buildModifierList.add( new DepVersionOverrider() );
         buildModifierList.add( new PluginVersionOverrider() );
 
+    }
+
+    /**
+     * Get the version of the current project from the properties file
+     * 
+     * @return The version of this project
+     */
+    private String loadProjectVersion()
+    {
+        InputStream in = null;
+        Properties props = new Properties();
+        try
+        {
+            in = getClass().getResourceAsStream( "project.properties" );
+            props.load( in );
+        }
+        catch ( IOException e )
+        {
+            // Ignore the error if we can't get the version.
+        }
+        finally
+        {
+            IOUtil.close( in );
+        }
+        String version = props.getProperty( "project.version" );
+        if (version == null)
+        {
+            version = "";
+        }
+        return version;
     }
 
     @Override
