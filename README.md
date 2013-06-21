@@ -8,14 +8,27 @@ This extension is compatible with Maven 3.  It has not been tested with Maven 2.
 
 ## Installation
 
-The extension jar can be downloaded from a maven repository, or it can be built from source.  Once the jar is downloaded, it must be added to the directory "${MAVEN_HOME}/lib/ext".  The next time Maven is started, you should see a command line message showing that the extension has been installed.
+The extension jar can be downloaded from a [Maven repository](http://repo1.maven.org/maven2/org/jboss/maven/extension/dependency/maven-dependency-management-extension/), or it can be built from source.  Once the jar is downloaded, it must be added to the directory `${MAVEN_HOME}/lib/ext`.  The next time Maven is started, you should see a command line message showing that the extension has been installed.
 
     [INFO] Init Maven Dependency Management Extension 1.0.0
 
-If you wish to remove the extension after installing it, remover the jar from the lib/ext directory:
+If you wish to remove the extension after installing it, remove the jar from the `lib/ext` directory:
 
     rm ${MAVEN_HOME}/lib/ext/maven-dependency-management-extension*.jar
 
+
+## Activate for an individual project
+As an alternative to installing the extension into your Maven installation, you can activate Maven Dependency Management Extension for a single project by adding this to your **pom.xml** (fill in **VERSION**, eg 1.0.1):
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.jboss.maven.extension.dependency</groupId>
+                <artifactId>maven-dependency-management-extension</artifactId>
+                <version>VERSION</version>
+            </extension>
+        </extensions>
+    </build>
 
 ## Usage
 
