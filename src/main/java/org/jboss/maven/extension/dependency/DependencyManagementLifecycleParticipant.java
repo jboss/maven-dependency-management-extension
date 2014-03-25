@@ -150,7 +150,7 @@ public class DependencyManagementLifecycleParticipant
                 }
             }
 
-            // Iff something changed, then it will be useful to output extra info
+            // If something changed, then it will be useful to output extra info
             if ( modelChangeCount >= 1 )
             {
                 logger.debug( "Model changed at least once, writing informational files" );
