@@ -92,7 +92,7 @@ public class DepVersionOverrider
         String projectGA = model.getGroupId() + ":" + model.getArtifactId();
 
         versionOverrides = applyModuleVersionOverrides( projectGA, versionOverrides );
-        
+
         // Add/override a property to the build for each override
         addVersionOverrideProperties( versionOverrides, model.getProperties() );
 
@@ -162,7 +162,7 @@ public class DepVersionOverrider
     /**
      * Whether to override unmanaged transitive dependencies in the build. Has the effect of adding (or not) new entries
      * to dependency management when no matching dependency is found in the pom. Defaults to true.
-     * 
+     *
      * @return
      */
     private boolean overrideTransitive()
@@ -174,7 +174,7 @@ public class DepVersionOverrider
     /**
      * Get the set of versions which will be used to override local dependency versions. This is the full set of version
      * overrides from system properties and remote poms.
-     * 
+     *
      * The format of the key is "groupId:artifactId[@moduleGroupId:moduleArtifactId]"
      * The value is the version string
      */
@@ -199,7 +199,7 @@ public class DepVersionOverrider
      * Remove version overrides which refer to projects in the current reactor.
      * Projects in the reactor include things like inter-module dependencies
      * which should never be overridden.
-     * 
+     *
      * @param versionOverrides
      * @return A new Map with the reactor GAs removed.
      */
@@ -215,10 +215,10 @@ public class DepVersionOverrider
     }
 
     /**
-     * Remove module overrides which do not apply to the current module. Searches the full list of version overrides 
+     * Remove module overrides which do not apply to the current module. Searches the full list of version overrides
      * for any keys which contain the '@' symbol.  Removes these from the version overrides list, and add them back
      * without the '@' symbol only if they apply to the current module.
-     * 
+     *
      * @param versionOverides The full list of version overrides, both global and module specific
      * @return The map of global and module specific overrides which apply to the given module
      */
@@ -235,7 +235,15 @@ public class DepVersionOverrider
                 String moduleGA = artifactAndModule[1];
                 if ( moduleGA.equals( projectGA ) )
                 {
-                    moduleVersionOverrides.put( artifactGA, versionOverrides.get( currentKey ) );
+                    if ( versionOverrides.get( currentKey) != null && versionOverrides.get( currentKey).length() > 0)
+                    {
+                        moduleVersionOverrides.put( artifactGA, versionOverrides.get( currentKey ) );
+                    }
+                    else
+                    {
+                        moduleVersionOverrides.remove(artifactGA);
+                        Log.getLog().debug("Ignoring module dependency override for " + moduleGA);
+                    }
                 }
             }
         }
@@ -251,7 +259,7 @@ public class DepVersionOverrider
         String propPrefix = getVersionPropertyPrefix();
         String gaSeparator = getGASeparator();
         String propSuffix = getVersionPropertySuffix();
-        
+
         for (String currentGA : overrides.keySet() )
         {
             String versionPropName = propPrefix + currentGA.replace( ":", gaSeparator ) + propSuffix;
@@ -288,7 +296,7 @@ public class DepVersionOverrider
 
     /**
      * Apply a set of version overrides to a list of dependencies. Return a set of the overrides which were not applied.
-     * 
+     *
      * @param dependencies The list of dependencies
      * @param overrides The map of dependency version overrides
      * @return The map of overrides that were not matched in the dependencies
@@ -301,7 +309,7 @@ public class DepVersionOverrider
 
     /**
      * Apply a set of version overrides to a list of dependencies. Return a set of the overrides which were not applied.
-     * 
+     *
      * @param dependencies The list of dependencies
      * @param overrides The map of dependency version overrides
      * @param excludes A set of GAs to ignore when overridding dep versions
@@ -334,7 +342,7 @@ public class DepVersionOverrider
 
     /**
      * Get dependency management version properties from a remote POM
-     * 
+     *
      * @return Map between the GA of the dependency and the version of the dependency. If the property is not set,
      *         returns an empty map
      */

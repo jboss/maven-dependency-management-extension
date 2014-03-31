@@ -33,7 +33,6 @@ import org.apache.maven.model.building.ModelBuildingException;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.model.building.ModelBuildingResult;
 import org.apache.maven.model.building.ModelProblem;
-import org.apache.maven.model.io.ModelParseException;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
@@ -78,7 +77,7 @@ public class EffectiveModelBuilder
 
     /**
      * Get list of remote repositories from which to download artifacts
-     * 
+     *
      * @return list of repositories
      */
     private List<RemoteRepository> getRepositories()
@@ -93,7 +92,7 @@ public class EffectiveModelBuilder
 
     /**
      * Set the list of remote repositories from which to download dependency management poms.
-     * 
+     *
      * @param repositories
      */
     public void setRepositories( List<RemoteRepository> repositories )
@@ -103,7 +102,7 @@ public class EffectiveModelBuilder
 
     /**
      * Set the list of remote repositories from which to download dependency management poms.
-     * 
+     *
      * @param repository
      */
     public void addRepository( ArtifactRepository repository )
@@ -133,7 +132,7 @@ public class EffectiveModelBuilder
 
     /**
      * Initialize the set of repositories from which to download remote artifacts
-     * 
+     *
      * @param repositories
      */
     private static void initRepositories( List<ArtifactRepository> repositories )
@@ -152,7 +151,7 @@ public class EffectiveModelBuilder
 
     /**
      * Return the instance. Will return "null" until init() has been called.
-     * 
+     *
      * @return the initialized instance or null if it hasn't been initialized yet
      */
     public static EffectiveModelBuilder getInstance()
@@ -261,7 +260,7 @@ public class EffectiveModelBuilder
 
     /**
      * Build the effective model for the given pom file
-     * 
+     *
      * @param pomFile
      * @return effective pom model
      * @throws ModelBuildingException
@@ -281,7 +280,7 @@ public class EffectiveModelBuilder
 
     /**
      * Get the default repository system from the current plexus container
-     * 
+     *
      * @return RepositorySystem
      * @throws ComponentLookupException
      * @throws PlexusContainerException
@@ -294,7 +293,7 @@ public class EffectiveModelBuilder
 
     /**
      * Resolve the pom file for a given GAV
-     * 
+     *
      * @param gav must be in the format groupId:artifactId:version
      * @return The resolved pom artifact
      * @throws ArtifactResolutionException
@@ -316,7 +315,7 @@ public class EffectiveModelBuilder
 
     /**
      * Resolve artifact from the remote repository
-     * 
+     *
      * @param artifact
      * @return
      * @throws ArtifactResolutionException
