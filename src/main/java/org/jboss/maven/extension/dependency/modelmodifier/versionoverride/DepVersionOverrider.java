@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
@@ -79,7 +80,7 @@ public class DepVersionOverrider
      * Modify model's dependency management and direct dependencies.
      */
     @Override
-    public boolean updateModel( Model model )
+    public boolean updateModel( Model model ) throws MavenExecutionException
     {
         Map<String, String> versionOverrides = getVersionOverrides();
         if ( versionOverrides.size() == 0 )
@@ -178,7 +179,7 @@ public class DepVersionOverrider
      * The format of the key is "groupId:artifactId[@moduleGroupId:moduleArtifactId]"
      * The value is the version string
      */
-    private Map<String, String> getVersionOverrides()
+    private Map<String, String> getVersionOverrides() throws MavenExecutionException
     {
         if ( dependencyVersionOverrides == null )
         {
@@ -354,7 +355,7 @@ public class DepVersionOverrider
      * @return Map between the GA of the dependency and the version of the dependency. If the property is not set,
      *         returns an empty map
      */
-    private static Map<String, String> loadRemoteDepVersionOverrides()
+    private static Map<String, String> loadRemoteDepVersionOverrides() throws MavenExecutionException
     {
         Properties systemProperties = System.getProperties();
         String depMgmtPomCSV = systemProperties.getProperty( DEPENDENCY_MANAGEMENT_POM_PROPERTY );
@@ -384,15 +385,18 @@ public class DepVersionOverrider
             }
             catch ( ArtifactResolutionException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
             catch ( ArtifactDescriptorException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
             catch ( ModelBuildingException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
         }
 

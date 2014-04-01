@@ -15,6 +15,7 @@
  */
 package org.jboss.maven.extension.dependency.modelmodifier;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.model.Model;
 
 /**
@@ -28,7 +29,7 @@ public interface ModelModifier
      * @param model the Model to be modified
      * @return true iff the model changed
      */
-    public boolean updateModel( Model model );
+    public boolean updateModel( Model model ) throws MavenExecutionException;
 
     /**
      * Get simple name of this modifier

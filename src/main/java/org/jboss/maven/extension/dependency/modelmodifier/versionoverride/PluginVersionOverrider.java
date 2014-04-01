@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
@@ -61,7 +62,7 @@ public class PluginVersionOverrider
     private Map<String, String> pluginVersionOverrides;
 
     @Override
-    public boolean updateModel( Model model )
+    public boolean updateModel( Model model ) throws MavenExecutionException
     {
         Map<String, String> versionOverrides = getVersionOverrides();
         if ( versionOverrides.size() == 0 )
@@ -101,7 +102,7 @@ public class PluginVersionOverrider
     /**
      * Get the set of versions which will be used to override local plugin versions.
      */
-    private Map<String, String> getVersionOverrides()
+    private Map<String, String> getVersionOverrides() throws MavenExecutionException
     {
         if ( pluginVersionOverrides == null )
         {
@@ -143,7 +144,7 @@ public class PluginVersionOverrider
      * @return Map between the GA of the plugin and the version of the plugin. If the system property is not set,
      *         returns an empty map.
      */
-    private static Map<String, String> loadRemotePluginVersionOverrides()
+    private static Map<String, String> loadRemotePluginVersionOverrides() throws MavenExecutionException
     {
         Properties systemProperties = System.getProperties();
         String pluginMgmtCSV = systemProperties.getProperty( PLUGIN_MANAGEMENT_POM_PROPERTY );
@@ -174,15 +175,18 @@ public class PluginVersionOverrider
             }
             catch ( ArtifactResolutionException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
             catch ( ArtifactDescriptorException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
             catch ( ModelBuildingException e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().error( "Unable to resolve remote pom: " + e );
+                throw new MavenExecutionException("Unable to resolve remote pom", e);
             }
         }
         return versionOverrides;
