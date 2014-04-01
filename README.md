@@ -160,10 +160,3 @@ dependency management pom contains overrides for the modules of the current proj
 to use the override versions instead of the local versions.  In version 1.0.1 of this extension, a change was made
 to cause the overrides to ignore dependencies that are in the current reactor, however this problem could still
 occur when attempting to build a single module of a multi-module build. 
-
-### Multiple versions of a single dependency
-
-Some complex projects use more than one version of a single dependency across different modules.  For example,
-this could be useful in testing compatibility between multiple versions of an API.  This extension does not
-currently allow multiple versions to be used for a single dependency.
-
