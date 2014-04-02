@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
@@ -203,6 +204,25 @@ public class EffectiveModelBuilder
             String version = artifact.getVersion();
             versionOverrides.put( groupIdArtifactId, version );
         }
+
+        return versionOverrides;
+    }
+
+
+    public Properties getRemotePropertyMappingOverrides( String gav )
+        throws ArtifactResolutionException, ArtifactDescriptorException, ModelBuildingException
+    {
+        Log.getLog().debug( "Resolving remote property mapping POM: " + gav );
+
+        Artifact artifact = resolvePom( gav );
+
+        ModelResolver modelResolver = this.newModelResolver();
+
+        Model effectiveModel = buildModel( artifact.getFile(), modelResolver );
+
+        Properties versionOverrides = effectiveModel.getProperties();
+
+        Log.getLog().debug( "Returning override of " + versionOverrides);
 
         return versionOverrides;
     }

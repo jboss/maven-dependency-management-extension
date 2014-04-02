@@ -36,6 +36,8 @@ import org.codehaus.plexus.util.IOUtil;
 import org.jboss.maven.extension.dependency.metainf.EffectivePomGenerator;
 import org.jboss.maven.extension.dependency.metainf.MetaInfWriter;
 import org.jboss.maven.extension.dependency.modelmodifier.ModelModifier;
+import org.jboss.maven.extension.dependency.modelmodifier.SessionModifier;
+import org.jboss.maven.extension.dependency.modelmodifier.propertyoverride.PropertyMappingOverrider;
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.DepVersionOverrider;
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.PluginVersionOverrider;
 import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
@@ -54,13 +56,17 @@ public class DependencyManagementLifecycleParticipant
     @Requirement
     private Logger logger;
 
-    private final List<ModelModifier> buildModifierList = new ArrayList<ModelModifier>();
+    private final List<ModelModifier> afterProjectsReadModifierList = new ArrayList<ModelModifier>();
+
+    private final List<SessionModifier> afterSessionStartModifierList = new ArrayList<SessionModifier>();
 
     @Requirement
     private ArtifactResolver resolver;
 
     @Requirement
     private ModelBuilder modelBuilder;
+
+    private int sessionChangeCount = 0;
 
     /**
      * Load the build modifiers at instantiation time
@@ -70,14 +76,16 @@ public class DependencyManagementLifecycleParticipant
         // Logger is not available yet
         System.out.println( "[INFO] Init Maven Dependency Management Extension " + loadProjectVersion() );
 
-        buildModifierList.add( new DepVersionOverrider() );
-        buildModifierList.add( new PluginVersionOverrider() );
+        afterProjectsReadModifierList.add( new DepVersionOverrider() );
+        afterProjectsReadModifierList.add( new PluginVersionOverrider() );
+
+        afterSessionStartModifierList.add( new PropertyMappingOverrider() );
 
     }
 
     /**
      * Get the version of the current project from the properties file
-     * 
+     *
      * @return The version of this project
      */
     private String loadProjectVersion()
@@ -106,10 +114,11 @@ public class DependencyManagementLifecycleParticipant
     }
 
     @Override
-    public void afterProjectsRead( MavenSession session )
+    public void afterSessionStart( MavenSession session )
         throws MavenExecutionException
     {
         Log.setLog( logger );
+
         try
         {
             EffectiveModelBuilder.init( session, resolver, modelBuilder );
@@ -122,7 +131,20 @@ public class DependencyManagementLifecycleParticipant
         {
             logger.error( "EffectiveModelBuilder init produced a plexus container error: " + e );
         }
+        for ( SessionModifier currModifier : afterSessionStartModifierList )
+        {
+            boolean modelChanged = currModifier.updateSession( session );
+            if ( modelChanged )
+            {
+                sessionChangeCount++;
+            }
+        }
+    }
 
+    @Override
+    public void afterProjectsRead( MavenSession session )
+        throws MavenExecutionException
+    {
         // The dependency management overrider needs to know which projects
         // are in the reactor, and therefore should not be overridden.
         StringBuilder reactorProjects = new StringBuilder();
@@ -136,12 +158,12 @@ public class DependencyManagementLifecycleParticipant
         for ( MavenProject project : session.getProjects() )
         {
             logger.debug( "Checking project '" + project.getId() + "'" );
-
             int modelChangeCount = 0;
+
             Model currModel = project.getModel();
 
             // Run the modifiers against the built model
-            for ( ModelModifier currModifier : buildModifierList )
+            for ( ModelModifier currModifier : afterProjectsReadModifierList )
             {
                 boolean modelChanged = currModifier.updateModel( currModel );
                 if ( modelChanged )
@@ -151,9 +173,9 @@ public class DependencyManagementLifecycleParticipant
             }
 
             // If something changed, then it will be useful to output extra info
-            if ( modelChangeCount >= 1 )
+            if ( sessionChangeCount >=1 || modelChangeCount >= 1 )
             {
-                logger.debug( "Model changed at least once, writing informational files" );
+                logger.debug( "Session/Model changed at least once, writing informational files" );
                 try
                 {
                     MetaInfWriter.writeResource( currModel, new EffectivePomGenerator() );

@@ -15,20 +15,20 @@
  */
 package org.jboss.maven.extension.dependency.modelmodifier;
 
-import org.apache.maven.model.Model;
+import org.apache.maven.execution.MavenSession;
 
 /**
- * Interface for classes that modify a built model in some way
+ * Interface for classes that modify a session in some way
  */
-public interface ModelModifier
+public interface SessionModifier
 {
     /**
-     * Possibly updates a model in some way (may do nothing).
+     * Possibly updates a session in some way (may do nothing).
      *
-     * @param model the Model to be modified
-     * @return true if the model changed
+     * @param session the Session to be modified
+     * @return true if the session changed
      */
-    public boolean updateModel( Model model );
+    public boolean updateSession( MavenSession session );
 
     /**
      * Get simple name of this modifier

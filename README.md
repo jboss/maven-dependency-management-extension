@@ -83,6 +83,18 @@ For example to apply a dependency override only to module B of project foo.
 
     mvn install -Dversion:junit:junit@org.foo:moduleB=4.10
 
+
+#### Prevent overriding dependency versions per module
+
+It is also possible to prevent overriding dependency versions on a per module basis:
+
+    mvn install -Dversion:[groupId]:[artifactId]@[moduleGroupId]:[moduleArtifactId]=
+
+For example
+
+    mvn install -Dversion:junit:junit@org.foo:moduleB=
+
+
 ### Overriding plugin versions
 
 Plugin versions can be overridden in the pom using a similar pattern to dependencies with the format "pluginVersion:[groupId]:[artifactId]=[version]".
@@ -99,6 +111,15 @@ list of GAVs.  The first pom specified will be given the highest priority if con
 
     mvn install -DpluginManagement=org.company:pluginMgrA:1.0,org.company:pluginMgrB:2.0
 
+### Overriding Properties
+
+The extensions may also be used to override properties prior to interpolating the model. This requires
+the extension to be installed in lib/ext. Multiple property mappings can be overridden using a similar pattern 
+to dependencies via a remote property management pom.
+
+    mvn install -DpropertyManagement=org.foo:property-management:10
+
+Properties may be overridden on the command line as per normal Maven usage (i.e. -Dversion.org.foo=1.0)
 
 ## Using Dependency Properties
 
