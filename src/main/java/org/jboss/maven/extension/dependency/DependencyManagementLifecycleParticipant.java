@@ -20,13 +20,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -41,8 +41,9 @@ import org.jboss.maven.extension.dependency.modelmodifier.propertyoverride.Prope
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.DepVersionOverrider;
 import org.jboss.maven.extension.dependency.modelmodifier.versionoverride.PluginVersionOverrider;
 import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
+import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder31;
 import org.jboss.maven.extension.dependency.util.Log;
-import org.sonatype.aether.impl.ArtifactResolver;
+import org.jboss.maven.extension.dependency.util.MavenUtil;
 
 /**
  * Main executor. Operates at the point defined by superclass as "afterProjectsRead", which is "after all MavenProject
@@ -61,7 +62,7 @@ public class DependencyManagementLifecycleParticipant
     private final List<SessionModifier> afterSessionStartModifierList = new ArrayList<SessionModifier>();
 
     @Requirement
-    private ArtifactResolver resolver;
+    private PlexusContainer plexus;
 
     @Requirement
     private ModelBuilder modelBuilder;
@@ -121,7 +122,13 @@ public class DependencyManagementLifecycleParticipant
 
         try
         {
-            EffectiveModelBuilder.init( session, resolver, modelBuilder );
+            if (getMavenVersion().compareTo("3.0.5") <= 0) {
+                EffectiveModelBuilder.init( session, plexus, modelBuilder );
+                logger.debug("using sonatype aether impl");
+            } else {
+                EffectiveModelBuilder31.init( session, plexus, modelBuilder );
+                logger.debug("using eclipse aether impl");
+            }
         }
         catch ( ComponentLookupException e )
         {
@@ -139,6 +146,28 @@ public class DependencyManagementLifecycleParticipant
                 sessionChangeCount++;
             }
         }
+    }
+
+    private String getMavenVersion()
+    {
+        Properties props = new Properties();
+
+        InputStream is = MavenUtil.class.getResourceAsStream( "/META-INF/maven/org.apache.maven/maven-core/pom.properties" );
+        if ( is != null )
+        {
+            try
+            {
+                props.load( is );
+            }
+            catch ( IOException e )
+            {
+                logger.debug( "Failed to read Maven version", e );
+            }
+
+            IOUtil.close( is );
+        }
+        return props.getProperty( "version", "unknown-version" );
+
     }
 
     @Override

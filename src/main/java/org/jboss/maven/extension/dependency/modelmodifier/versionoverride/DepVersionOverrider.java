@@ -22,19 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.building.ModelBuildingException;
-import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
+import org.jboss.maven.extension.dependency.resolver.AbstractEffectiveModelBuilder;
 import org.jboss.maven.extension.dependency.util.Log;
 import org.jboss.maven.extension.dependency.util.MavenUtil;
 import org.jboss.maven.extension.dependency.util.VersionPropertyReader;
-import org.sonatype.aether.resolution.ArtifactDescriptorException;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-
 /**
  * Overrides dependency versions in a model
  */
@@ -380,20 +375,10 @@ public class DepVersionOverrider
             }
             try
             {
-                EffectiveModelBuilder resolver = EffectiveModelBuilder.getInstance();
+                AbstractEffectiveModelBuilder resolver = AbstractEffectiveModelBuilder.getInstance();
                 versionOverrides.putAll( resolver.getRemoteDependencyVersionOverrides( nextGAV ) );
             }
-            catch ( ArtifactResolutionException e )
-            {
-                Log.getLog().error( "Unable to resolve remote pom: " + e );
-                throw new MavenExecutionException("Unable to resolve remote pom", e);
-            }
-            catch ( ArtifactDescriptorException e )
-            {
-                Log.getLog().error( "Unable to resolve remote pom: " + e );
-                throw new MavenExecutionException("Unable to resolve remote pom", e);
-            }
-            catch ( ModelBuildingException e )
+            catch (Exception e )
             {
                 Log.getLog().error( "Unable to resolve remote pom: " + e );
                 throw new MavenExecutionException("Unable to resolve remote pom", e);

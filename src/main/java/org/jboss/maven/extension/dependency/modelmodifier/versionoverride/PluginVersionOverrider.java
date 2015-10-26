@@ -19,18 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
-import org.apache.maven.model.building.ModelBuildingException;
-import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
+import org.jboss.maven.extension.dependency.resolver.AbstractEffectiveModelBuilder;
 import org.jboss.maven.extension.dependency.util.Log;
 import org.jboss.maven.extension.dependency.util.MavenUtil;
 import org.jboss.maven.extension.dependency.util.VersionPropertyReader;
-import org.sonatype.aether.resolution.ArtifactDescriptorException;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
 
 /**
  * Overrides plugin versions in a model
@@ -120,7 +116,7 @@ public class PluginVersionOverrider
 
     /**
      * Set the versions of any plugins which match the contents of the list of plugin overrides
-     * 
+     *
      * @param plugins The list of plugins to modify
      * @param pluginVersionOverrides The list of version overrides to apply to the plugins
      */
@@ -140,7 +136,7 @@ public class PluginVersionOverrider
 
     /**
      * Get plugin management version properties from a remote POM
-     * 
+     *
      * @return Map between the GA of the plugin and the version of the plugin. If the system property is not set,
      *         returns an empty map.
      */
@@ -170,20 +166,10 @@ public class PluginVersionOverrider
             }
             try
             {
-                EffectiveModelBuilder resolver = EffectiveModelBuilder.getInstance();
+                AbstractEffectiveModelBuilder resolver = AbstractEffectiveModelBuilder.getInstance();
                 versionOverrides.putAll( resolver.getRemotePluginVersionOverrides( nextGAV ) );
             }
-            catch ( ArtifactResolutionException e )
-            {
-                Log.getLog().error( "Unable to resolve remote pom: " + e );
-                throw new MavenExecutionException("Unable to resolve remote pom", e);
-            }
-            catch ( ArtifactDescriptorException e )
-            {
-                Log.getLog().error( "Unable to resolve remote pom: " + e );
-                throw new MavenExecutionException("Unable to resolve remote pom", e);
-            }
-            catch ( ModelBuildingException e )
+            catch (Exception e )
             {
                 Log.getLog().error( "Unable to resolve remote pom: " + e );
                 throw new MavenExecutionException("Unable to resolve remote pom", e);
