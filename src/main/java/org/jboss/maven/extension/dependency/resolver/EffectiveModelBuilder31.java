@@ -34,31 +34,30 @@ import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.model.building.ModelBuildingResult;
 import org.apache.maven.model.building.ModelProblem;
 import org.apache.maven.model.resolution.ModelResolver;
-import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.impl.ArtifactResolver;
+import org.eclipse.aether.impl.RemoteRepositoryManager;
+import org.eclipse.aether.internal.impl.DefaultRemoteRepositoryManager;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.ArtifactResult;
 import org.jboss.maven.extension.dependency.util.Log;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.graph.Dependency;
-import org.sonatype.aether.impl.ArtifactResolver;
-import org.sonatype.aether.impl.RemoteRepositoryManager;
-import org.sonatype.aether.impl.internal.DefaultRemoteRepositoryManager;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactDescriptorException;
-import org.sonatype.aether.resolution.ArtifactDescriptorRequest;
-import org.sonatype.aether.resolution.ArtifactDescriptorResult;
-import org.sonatype.aether.resolution.ArtifactRequest;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.resolution.ArtifactResult;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 /**
  * Class to resolve artifact descriptors (pom files) from a maven repository
  */
-public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
+public class EffectiveModelBuilder31 extends AbstractEffectiveModelBuilder
 {
 
     private MavenSession session;
@@ -106,14 +105,14 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
      */
     public void addRepository( ArtifactRepository repository )
     {
-        RemoteRepository remoteRepo = new RemoteRepository( repository.getId(), "default", repository.getUrl() );
+        RemoteRepository remoteRepo = new RemoteRepository.Builder( repository.getId(), "default", repository.getUrl() ).build();
         getRepositories().add( remoteRepo );
     }
 
     /**
      * Private constructor for singleton
      */
-    private EffectiveModelBuilder()
+    private EffectiveModelBuilder31()
     {
 
     }
@@ -121,9 +120,10 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
     public static void init( MavenSession session, PlexusContainer plexus, ModelBuilder modelBuilder )
         throws ComponentLookupException, PlexusContainerException
     {
-        EffectiveModelBuilder instance = new EffectiveModelBuilder();
+
+        EffectiveModelBuilder31 instance = new EffectiveModelBuilder31();
         instance.session = session;
-        instance.repositorySystem = newRepositorySystem();
+        instance.repositorySystem = plexus.lookup( RepositorySystem.class );
         instance.resolver = plexus.lookup( ArtifactResolver.class );
         instance.modelBuilder = modelBuilder;
         AbstractEffectiveModelBuilder.instance = instance;
@@ -141,24 +141,16 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
         {
             // Set default repository list to include Maven central
             String remoteRepoUrl = "http://repo.maven.apache.org/maven2";
-            ((EffectiveModelBuilder) instance).getRepositories().add( new RemoteRepository( "central", "default", remoteRepoUrl ) );
+            ((EffectiveModelBuilder31 )instance).getRepositories().add( new RemoteRepository.Builder( "central", "default", remoteRepoUrl ).build() );
         }
         for ( ArtifactRepository artifactRepository : repositories )
         {
-            ((EffectiveModelBuilder) instance).addRepository( artifactRepository );
+            ((EffectiveModelBuilder31 )instance).addRepository( artifactRepository );
         }
     }
 
-    /**
-     * Return the instance. Will return "null" until init() has been called.
-     *
-     * @return the initialized instance or null if it hasn't been initialized yet
-     */
-//    public static EffectiveModelBuilder getInstance()
- //   {
-   //     return instance;
-   // }
 
+    @Override
     public Map<String, String> getRemoteDependencyVersionOverrides( String gav )
         throws ArtifactResolutionException, ArtifactDescriptorException, ModelBuildingException
     {
@@ -227,7 +219,6 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
         return versionOverrides;
     }
 
-    @Override
     public Map<String, String> getRemotePluginVersionOverrides( String gav )
         throws ArtifactResolutionException, ArtifactDescriptorException, ModelBuildingException
 
@@ -260,7 +251,7 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
     {
         Log.getLog().debug( "Resolving remote POM: " + gav );
 
-        RepositorySystemSession repoSession = session.getRepositorySession();
+        RepositorySystemSession repoSession = extractRepositorySystemSession(session);
 
         Artifact artifact = new DefaultArtifact( gav );
 
@@ -300,19 +291,6 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
     }
 
     /**
-     * Get the default repository system from the current plexus container
-     *
-     * @return RepositorySystem
-     * @throws ComponentLookupException
-     * @throws PlexusContainerException
-     */
-    private static RepositorySystem newRepositorySystem()
-        throws ComponentLookupException, PlexusContainerException
-    {
-        return new DefaultPlexusContainer().lookup( RepositorySystem.class );
-    }
-
-    /**
      * Resolve the pom file for a given GAV
      *
      * @param gav must be in the format groupId:artifactId:version
@@ -348,17 +326,28 @@ public class EffectiveModelBuilder extends AbstractEffectiveModelBuilder
         request.setArtifact( artifact );
         request.setRepositories( getRepositories() );
 
-        RepositorySystemSession repositorySession = session.getRepositorySession();
+        RepositorySystemSession repositorySession = extractRepositorySystemSession(session);
         ArtifactResult result = resolver.resolveArtifact( repositorySession, request );
         return result.getArtifact();
     }
 
-    private ModelResolver newModelResolver()
+    private ModelResolver newModelResolver() throws ArtifactResolutionException
     {
         RemoteRepositoryManager repoMgr = new DefaultRemoteRepositoryManager();
         ModelResolver modelResolver =
-            new BasicModelResolver( session.getRepositorySession(), resolver, repoMgr, getRepositories() );
+            new BasicModelResolver31(extractRepositorySystemSession(session), resolver, repoMgr, getRepositories() );
 
         return modelResolver;
+    }
+
+    private RepositorySystemSession extractRepositorySystemSession(MavenSession session) throws ArtifactResolutionException {
+        try {
+            // NB: The return type of MavenSession.getRepositorySession() changed along with the switch from sonatype to eclipse.
+            // Since we are compiling against Maven 3.0.4 (still using sonatype), direct invokation runnig with 3.1+ will would cause
+            // a java.lang.NoSuchMerhodError - Therefore, we resort to reflection:
+            return (RepositorySystemSession) session.getClass().getMethod("getRepositorySession").invoke(session);
+        } catch (Exception ex) {
+            throw new ArtifactResolutionException(Collections.<ArtifactResult>emptyList(), "Unable to access RepositorySystemSession", ex);
+        }
     }
 }

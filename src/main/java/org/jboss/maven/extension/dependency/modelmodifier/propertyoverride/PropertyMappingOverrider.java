@@ -16,15 +16,11 @@
 package org.jboss.maven.extension.dependency.modelmodifier.propertyoverride;
 
 import java.util.Properties;
-
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.building.ModelBuildingException;
 import org.jboss.maven.extension.dependency.modelmodifier.SessionModifier;
-import org.jboss.maven.extension.dependency.resolver.EffectiveModelBuilder;
+import org.jboss.maven.extension.dependency.resolver.AbstractEffectiveModelBuilder;
 import org.jboss.maven.extension.dependency.util.Log;
 import org.jboss.maven.extension.dependency.util.MavenUtil;
-import org.sonatype.aether.resolution.ArtifactDescriptorException;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
 
 /**
  * Overrides properties in a model
@@ -127,21 +123,12 @@ public class PropertyMappingOverrider
             }
             try
             {
-                EffectiveModelBuilder resolver = EffectiveModelBuilder.getInstance();
+                AbstractEffectiveModelBuilder resolver = AbstractEffectiveModelBuilder.getInstance();
                 versionOverrides.putAll( resolver.getRemotePropertyMappingOverrides( nextGAV ) );
             }
-            catch ( ArtifactResolutionException e )
+            catch (Exception e )
             {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
-                e.printStackTrace();
-            }
-            catch ( ArtifactDescriptorException e )
-            {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
-            }
-            catch ( ModelBuildingException e )
-            {
-                Log.getLog().warn( "Unable to resolve remote pom: " + e );
+                Log.getLog().warn( "Unable to resolve remote pom: " + e, e);
             }
         }
         return versionOverrides;
